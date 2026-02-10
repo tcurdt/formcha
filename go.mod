@@ -10,5 +10,5 @@ require (
 
 require (
 	github.com/antihax/optional v1.0.0 // indirect
-	golang.org/x/oauth2 v0.21.0 // indirect
+	golang.org/x/oauth2 v0.27.0 // indirect
 )
