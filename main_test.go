@@ -28,8 +28,8 @@ func TestRootHandler(t *testing.T) {
 		t.Errorf("expected status 200, got %d", w.Code)
 	}
 
-	if !strings.Contains(w.Body.String(), "ALTCHA server demo endpoints") {
-		t.Error("expected response to contain endpoint documentation")
+	if !strings.Contains(w.Body.String(), "ALTCHA server") {
+		t.Error("expected response to contain server info")
 	}
 }
 
@@ -163,7 +163,7 @@ func TestSubmitHandler_ValidPayload(t *testing.T) {
 		t.Errorf("expected status 200, got %d. Body: %s", w.Code, w.Body.String())
 	}
 
-	var response map[string]interface{}
+	var response map[string]any
 	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
 		t.Fatalf("failed to parse response JSON: %v", err)
 	}

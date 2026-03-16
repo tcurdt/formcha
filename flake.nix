@@ -6,8 +6,14 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
       in
@@ -18,7 +24,7 @@
             version = "0.1.0";
             src = ./.;
 
-            vendorHash = "sha256-tBdmtQfq/+VFnqmaCEk4tJaN/mcjZP8bjbptZ7CG7/U=";
+            vendorHash = "sha256-kw7VFDBwc0t+3yF6llTcuhj1AEYNjOA1WVDCpz5/wz8=";
 
             meta = with pkgs.lib; {
               description = "formcha - an ALTCHA server implementation";
