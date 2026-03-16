@@ -80,18 +80,18 @@ func main() {
 
 	go func() {
 		<-quit
-		log.Println("Shutting down...")
+		log.Println("shutting down...")
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
-			log.Printf("Shutdown error: %v", err)
+			log.Printf("shutdown error: %v", err)
 		}
 	}()
 
 	if err := srv.Serve(ln); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("serve error: %v", err)
 	}
-	log.Println("Server stopped")
+	log.Println("server stopped")
 }
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {

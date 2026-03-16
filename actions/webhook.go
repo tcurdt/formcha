@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// CallWebhook calls a webhook URL with form data
+// calls a webhook URL with form data
 type CallWebhook struct {
 	URL        string
 	MaxRetries int
