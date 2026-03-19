@@ -214,8 +214,8 @@ func TestGetIdleTimeout_Default(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if idleTimeout != defaultIdleTimeout {
-		t.Fatalf("expected %v, got %v", defaultIdleTimeout, idleTimeout)
+	if idleTimeout != 0 {
+		t.Fatalf("expected %v, got %v", 0, idleTimeout)
 	}
 }
 
