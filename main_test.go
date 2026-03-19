@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/altcha-org/altcha-lib-go"
 )
@@ -202,6 +203,63 @@ func TestGetPort(t *testing.T) {
 	port := getPort()
 	if port != "3000" {
 		t.Errorf("expected default port 3000, got %s", port)
+	}
+}
+
+func TestGetIdleTimeout_Default(t *testing.T) {
+	t.Setenv("FORMCHA_IDLE_TIMEOUT", "")
+
+	idleTimeout, err := getIdleTimeout()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if idleTimeout != defaultIdleTimeout {
+		t.Fatalf("expected %v, got %v", defaultIdleTimeout, idleTimeout)
+	}
+}
+
+func TestGetIdleTimeout_ExplicitZero(t *testing.T) {
+	t.Setenv("FORMCHA_IDLE_TIMEOUT", "0")
+
+	idleTimeout, err := getIdleTimeout()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if idleTimeout != 0 {
+		t.Fatalf("expected 0, got %v", idleTimeout)
+	}
+}
+
+func TestGetIdleTimeout_ValidDuration(t *testing.T) {
+	t.Setenv("FORMCHA_IDLE_TIMEOUT", "30s")
+
+	idleTimeout, err := getIdleTimeout()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if idleTimeout != 30*time.Second {
+		t.Fatalf("expected 30s, got %v", idleTimeout)
+	}
+}
+
+func TestGetIdleTimeout_InvalidDuration(t *testing.T) {
+	t.Setenv("FORMCHA_IDLE_TIMEOUT", "not-a-duration")
+
+	_, err := getIdleTimeout()
+	if err == nil {
+		t.Fatal("expected an error, got nil")
+	}
+}
+
+func TestGetIdleTimeout_NegativeDuration(t *testing.T) {
+	t.Setenv("FORMCHA_IDLE_TIMEOUT", "-1s")
+
+	_, err := getIdleTimeout()
+	if err == nil {
+		t.Fatal("expected an error, got nil")
 	}
 }
 

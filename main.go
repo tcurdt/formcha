@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -37,6 +40,11 @@ func init() {
 }
 
 func main() {
+	idleTimeout, err := getIdleTimeout()
+	if err != nil {
+		log.Fatalf("invalid FORMCHA_IDLE_TIMEOUT: %v", err)
+	}
+
 	mux := http.NewServeMux()
 
 	// GET /ping - health check
@@ -52,8 +60,15 @@ func main() {
 	mux.HandleFunc("/submit", submitHandler)
 	mux.HandleFunc("/submit_spam_filter", submitSpamFilterHandler)
 
+	var inFlight atomic.Int64
+	var lastActivityUnixNano atomic.Int64
+	lastActivityUnixNano.Store(time.Now().UnixNano())
+
+	trackedHandler := trackActivity(corsMiddleware(mux), &inFlight, &lastActivityUnixNano)
+
 	srv := &http.Server{
-		Handler: corsMiddleware(mux),
+		Handler:     trackedHandler,
+		IdleTimeout: 5 * time.Second,
 	}
 
 	// determine listener: systemd socket activation takes priority, then PORT.
@@ -62,36 +77,118 @@ func main() {
 	if err != nil {
 		log.Fatalf("socket activation error: %v", err)
 	}
+	// socketActivated := len(listeners) > 0
 	if len(listeners) > 0 {
 		ln = listeners[0]
-		log.Printf("Server listening on systemd socket")
+		log.Printf("server listening on systemd socket")
 	} else {
 		port := getPort()
 		ln, err = net.Listen("tcp", ":"+port)
 		if err != nil {
 			log.Fatalf("listen error: %v", err)
 		}
-		log.Printf("Server listening on port %s", port)
+		log.Printf("server listening on port %s", port)
 	}
 
 	// handle SIGTERM / SIGINT for graceful shutdown.
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	defer signal.Stop(quit)
 
-	go func() {
-		<-quit
-		log.Println("shutting down...")
+	shutdown := func(reason string) {
+		log.Printf("shutting down (%s)", reason)
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Printf("shutdown error: %v", err)
 		}
+	}
+
+	var shutdownOnce sync.Once
+	triggerShutdown := func(reason string) {
+		shutdownOnce.Do(func() {
+			shutdown(reason)
+		})
+	}
+
+	go func() {
+		<-quit
+		triggerShutdown("signal")
 	}()
+
+	idleWatcherCtx, cancelIdleWatcher := context.WithCancel(context.Background())
+	defer cancelIdleWatcher()
+
+	if idleTimeout > 0 {
+		log.Printf("idle shutdown enabled: %s", idleTimeout)
+		go watchIdle(idleWatcherCtx, idleTimeout, &inFlight, &lastActivityUnixNano, triggerShutdown)
+	} else {
+		log.Printf("idle shutdown disabled")
+	}
 
 	if err := srv.Serve(ln); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("serve error: %v", err)
 	}
+	cancelIdleWatcher()
 	log.Println("server stopped")
+}
+
+func getIdleTimeout() (time.Duration, error) {
+	raw := strings.TrimSpace(os.Getenv("FORMCHA_IDLE_TIMEOUT"))
+	if raw == "" {
+		return 0, nil
+	}
+
+	d, err := time.ParseDuration(raw)
+	if err != nil {
+		return 0, fmt.Errorf("FORMCHA_IDLE_TIMEOUT=%q: %w", raw, err)
+	}
+	if d < 0 {
+		return 0, fmt.Errorf("FORMCHA_IDLE_TIMEOUT must be >= 0")
+	}
+
+	return d, nil
+}
+
+func trackActivity(next http.Handler, inFlight *atomic.Int64, lastActivityUnixNano *atomic.Int64) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		inFlight.Add(1)
+		defer func() {
+			inFlight.Add(-1)
+			lastActivityUnixNano.Store(time.Now().UnixNano())
+		}()
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func watchIdle(
+	ctx context.Context,
+	idleTimeout time.Duration,
+	inFlight *atomic.Int64,
+	lastActivityUnixNano *atomic.Int64,
+	triggerShutdown func(reason string),
+) {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if inFlight.Load() != 0 {
+				continue
+			}
+
+			lastActivity := time.Unix(0, lastActivityUnixNano.Load())
+			idleFor := time.Since(lastActivity)
+			if idleFor >= idleTimeout {
+				triggerShutdown(fmt.Sprintf("idle for %s", idleFor.Round(time.Second)))
+				return
+			}
+		}
+	}
 }
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
