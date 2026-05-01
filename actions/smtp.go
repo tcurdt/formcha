@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-// SendWithSMTP sends emails via SMTP
+// sends emails via SMTP
 type SendWithSMTP struct {
 	Host     string
 	Port     string

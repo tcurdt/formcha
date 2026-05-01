@@ -8,7 +8,7 @@ import (
 	"github.com/gregdel/pushover"
 )
 
-// SendWithPushover sends push notifications via Pushover
+// sends push notifications via Pushover
 type SendWithPushover struct {
 	Token   string
 	UserKey string

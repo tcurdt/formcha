@@ -8,7 +8,7 @@ import (
 	brevo "github.com/getbrevo/brevo-go/lib"
 )
 
-// SendWithBrevo sends emails via Brevo API
+// sends emails via Brevo API
 type SendWithBrevo struct {
 	APIKey      string
 	SenderName  string

@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-// LogToStdout logs form content to stdout
+// logs form content to stdout
 type LogToStdout struct{}
 
 func NewLogToStdout() *LogToStdout {
