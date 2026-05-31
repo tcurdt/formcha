@@ -11,12 +11,14 @@ import (
 	"time"
 
 	"github.com/altcha-org/altcha-lib-go"
+	"vafer.org/formcha/actions"
 )
 
 const testHMACKey = "test-secret-key"
 
 func init() {
 	altchaHMACKey = testHMACKey
+	actionRunner = actions.NewRunner()
 }
 
 func TestRootHandler(t *testing.T) {
@@ -198,66 +200,45 @@ func TestCorsMiddleware(t *testing.T) {
 	}
 }
 
-func TestGetPort(t *testing.T) {
-	// test default port
-	port := getPort()
-	if port != "3000" {
-		t.Errorf("expected default port 3000, got %s", port)
-	}
-}
-
 func TestGetIdleTimeout_Default(t *testing.T) {
-	t.Setenv("FORMCHA_IDLE_TIMEOUT", "")
-
-	idleTimeout, err := getIdleTimeout()
+	idleTimeout, err := getIdleTimeout("")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-
 	if idleTimeout != 0 {
 		t.Fatalf("expected %v, got %v", 0, idleTimeout)
 	}
 }
 
 func TestGetIdleTimeout_ExplicitZero(t *testing.T) {
-	t.Setenv("FORMCHA_IDLE_TIMEOUT", "0")
-
-	idleTimeout, err := getIdleTimeout()
+	idleTimeout, err := getIdleTimeout("0")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-
 	if idleTimeout != 0 {
 		t.Fatalf("expected 0, got %v", idleTimeout)
 	}
 }
 
 func TestGetIdleTimeout_ValidDuration(t *testing.T) {
-	t.Setenv("FORMCHA_IDLE_TIMEOUT", "30s")
-
-	idleTimeout, err := getIdleTimeout()
+	idleTimeout, err := getIdleTimeout("30s")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-
 	if idleTimeout != 30*time.Second {
 		t.Fatalf("expected 30s, got %v", idleTimeout)
 	}
 }
 
 func TestGetIdleTimeout_InvalidDuration(t *testing.T) {
-	t.Setenv("FORMCHA_IDLE_TIMEOUT", "not-a-duration")
-
-	_, err := getIdleTimeout()
+	_, err := getIdleTimeout("not-a-duration")
 	if err == nil {
 		t.Fatal("expected an error, got nil")
 	}
 }
 
 func TestGetIdleTimeout_NegativeDuration(t *testing.T) {
-	t.Setenv("FORMCHA_IDLE_TIMEOUT", "-1s")
-
-	_, err := getIdleTimeout()
+	_, err := getIdleTimeout("-1s")
 	if err == nil {
 		t.Fatal("expected an error, got nil")
 	}

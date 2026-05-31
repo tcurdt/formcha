@@ -3,10 +3,17 @@ package actions
 import (
 	"context"
 	"fmt"
-	"os"
 
 	brevo "github.com/getbrevo/brevo-go/lib"
 )
+
+type BrevoConfig struct {
+	APIKey      string `yaml:"api_key"`
+	SenderName  string `yaml:"sender_name"`
+	SenderEmail string `yaml:"sender_email"`
+	ToEmail     string `yaml:"to_email"`
+	ToName      string `yaml:"to_name"`
+}
 
 // sends emails via Brevo API
 type SendWithBrevo struct {
@@ -17,13 +24,13 @@ type SendWithBrevo struct {
 	ToName      string
 }
 
-func NewSendWithBrevo() *SendWithBrevo {
+func NewSendWithBrevo(cfg BrevoConfig) *SendWithBrevo {
 	return &SendWithBrevo{
-		APIKey:      os.Getenv("BREVO_API_KEY"),
-		SenderName:  os.Getenv("BREVO_SENDER_NAME"),
-		SenderEmail: os.Getenv("BREVO_SENDER_EMAIL"),
-		ToEmail:     os.Getenv("BREVO_TO_EMAIL"),
-		ToName:      os.Getenv("BREVO_TO_NAME"),
+		APIKey:      cfg.APIKey,
+		SenderName:  cfg.SenderName,
+		SenderEmail: cfg.SenderEmail,
+		ToEmail:     cfg.ToEmail,
+		ToName:      cfg.ToName,
 	}
 }
 

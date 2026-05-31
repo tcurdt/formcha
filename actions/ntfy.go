@@ -5,9 +5,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 )
+
+type NtfyConfig struct {
+	URL   string `yaml:"url"`
+	Token string `yaml:"token"`
+}
 
 // sends push notifications via ntfy
 type SendWithNtfy struct {
@@ -16,10 +20,10 @@ type SendWithNtfy struct {
 	client *http.Client
 }
 
-func NewSendWithNtfy() *SendWithNtfy {
+func NewSendWithNtfy(cfg NtfyConfig) *SendWithNtfy {
 	return &SendWithNtfy{
-		URL:    os.Getenv("NTFY_URL"),
-		Token:  os.Getenv("NTFY_TOKEN"),
+		URL:    cfg.URL,
+		Token:  cfg.Token,
 		client: &http.Client{Timeout: 30 * time.Second},
 	}
 }

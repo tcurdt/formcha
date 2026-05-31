@@ -58,7 +58,8 @@ Use `/submit_spam_filter` instead of `/submit` if you have ALTCHA server-side sp
 
 ## Configuration
 
-All configuration is done through environment variables.
+Configuration is done via config file or through environment variables.
+Values from the env override values from the file.
 
 ### Core
 

@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 )
+
+type WebhookConfig struct {
+	URL string `yaml:"url"`
+}
 
 // calls a webhook URL with form data
 type CallWebhook struct {
@@ -18,9 +21,9 @@ type CallWebhook struct {
 	client     *http.Client
 }
 
-func NewCallWebhook() *CallWebhook {
+func NewCallWebhook(cfg WebhookConfig) *CallWebhook {
 	return &CallWebhook{
-		URL:        os.Getenv("WEBHOOK_URL"),
+		URL:        cfg.URL,
 		MaxRetries: 3,
 		client:     &http.Client{Timeout: 30 * time.Second},
 	}

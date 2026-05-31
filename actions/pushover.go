@@ -3,10 +3,14 @@ package actions
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/gregdel/pushover"
 )
+
+type PushoverConfig struct {
+	Token   string `yaml:"token"`
+	UserKey string `yaml:"user_key"`
+}
 
 // sends push notifications via Pushover
 type SendWithPushover struct {
@@ -14,10 +18,10 @@ type SendWithPushover struct {
 	UserKey string
 }
 
-func NewSendWithPushover() *SendWithPushover {
+func NewSendWithPushover(cfg PushoverConfig) *SendWithPushover {
 	return &SendWithPushover{
-		Token:   os.Getenv("PUSHOVER_TOKEN"),
-		UserKey: os.Getenv("PUSHOVER_USER_KEY"),
+		Token:   cfg.Token,
+		UserKey: cfg.UserKey,
 	}
 }
 

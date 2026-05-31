@@ -5,8 +5,16 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/smtp"
-	"os"
 )
+
+type SMTPConfig struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	From     string `yaml:"from"`
+	To       string `yaml:"to"`
+}
 
 // sends emails via SMTP
 type SendWithSMTP struct {
@@ -18,14 +26,14 @@ type SendWithSMTP struct {
 	To       string
 }
 
-func NewSendWithSMTP() *SendWithSMTP {
+func NewSendWithSMTP(cfg SMTPConfig) *SendWithSMTP {
 	return &SendWithSMTP{
-		Host:     os.Getenv("SMTP_HOST"),
-		Port:     os.Getenv("SMTP_PORT"),
-		Username: os.Getenv("SMTP_USERNAME"),
-		Password: os.Getenv("SMTP_PASSWORD"),
-		From:     os.Getenv("SMTP_FROM"),
-		To:       os.Getenv("SMTP_TO"),
+		Host:     cfg.Host,
+		Port:     cfg.Port,
+		Username: cfg.Username,
+		Password: cfg.Password,
+		From:     cfg.From,
+		To:       cfg.To,
 	}
 }
 

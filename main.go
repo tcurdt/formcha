@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -21,28 +21,33 @@ import (
 	"vafer.org/formcha/actions"
 )
 
-var altchaHMACKey = os.Getenv("ALTCHA_HMAC_KEY")
+var altchaHMACKey string
 
 var actionRunner *actions.Runner
 
-func init() {
-	var enabledActions []actions.Action
+func main() {
+	configPath := flag.String("config", "", "path to config file (YAML)")
+	flag.Parse()
+
+	cfg, err := loadConfig(*configPath)
+	if err != nil {
+		log.Fatalf("config error: %v", err)
+	}
+
+	altchaHMACKey = cfg.Altcha.HMACKey
 
 	actionRunner = actions.NewRunner(
 		actions.NewLogToStdout(),
-		actions.NewCallWebhook(),
-		actions.NewSendWithSMTP(),
-		actions.NewSendWithBrevo(),
-		actions.NewSendWithPushover(),
+		actions.NewCallWebhook(cfg.Webhook),
+		actions.NewSendWithSMTP(cfg.SMTP),
+		actions.NewSendWithBrevo(cfg.Brevo),
+		actions.NewSendWithPushover(cfg.Pushover),
+		actions.NewSendWithNtfy(cfg.Ntfy),
 	)
 
-	actionRunner = actions.NewRunner(enabledActions...)
-}
-
-func main() {
-	idleTimeout, err := getIdleTimeout()
+	idleTimeout, err := getIdleTimeout(cfg.Server.IdleTimeout)
 	if err != nil {
-		log.Fatalf("invalid FORMCHA_IDLE_TIMEOUT: %v", err)
+		log.Fatalf("invalid idle_timeout: %v", err)
 	}
 
 	mux := http.NewServeMux()
@@ -82,7 +87,10 @@ func main() {
 		ln = listeners[0]
 		log.Printf("server listening on systemd socket")
 	} else {
-		port := getPort()
+		port := cfg.Server.Port
+		if port == "" {
+			port = "3000"
+		}
 		ln, err = net.Listen("tcp", ":"+port)
 		if err != nil {
 			log.Fatalf("listen error: %v", err)
@@ -133,18 +141,17 @@ func main() {
 	log.Println("server stopped")
 }
 
-func getIdleTimeout() (time.Duration, error) {
-	raw := strings.TrimSpace(os.Getenv("FORMCHA_IDLE_TIMEOUT"))
+func getIdleTimeout(raw string) (time.Duration, error) {
 	if raw == "" {
 		return 0, nil
 	}
 
 	d, err := time.ParseDuration(raw)
 	if err != nil {
-		return 0, fmt.Errorf("FORMCHA_IDLE_TIMEOUT=%q: %w", raw, err)
+		return 0, fmt.Errorf("%q: %w", raw, err)
 	}
 	if d < 0 {
-		return 0, fmt.Errorf("FORMCHA_IDLE_TIMEOUT must be >= 0")
+		return 0, fmt.Errorf("idle_timeout must be >= 0")
 	}
 
 	return d, nil
@@ -301,13 +308,6 @@ func submitSpamFilterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Error(w, "invalid Altcha payload", http.StatusBadRequest)
-}
-
-func getPort() string {
-	if port := os.Getenv("PORT"); port != "" {
-		return port
-	}
-	return "3000"
 }
 
 func corsMiddleware(next http.Handler) http.Handler {

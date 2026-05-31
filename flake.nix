@@ -21,10 +21,10 @@
         packages = {
           default = pkgs.buildGoModule {
             pname = "formcha";
-            version = "0.1.0";
+            version = "0.2.0";
             src = ./.;
 
-            vendorHash = "sha256-kw7VFDBwc0t+3yF6llTcuhj1AEYNjOA1WVDCpz5/wz8=";
+            vendorHash = "sha256-YgtU5OlL2G/dK56eE/jMo6Lx/Y3KS5Xuzjpt5ff8w38=";
 
             meta = with pkgs.lib; {
               description = "formcha - an ALTCHA server implementation";
