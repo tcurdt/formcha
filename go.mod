@@ -8,7 +8,7 @@ require (
 	github.com/getbrevo/brevo-go v1.1.3
 	github.com/gregdel/pushover v1.4.0
 	github.com/prometheus/client_golang v1.23.2
-	go.yaml.in/yaml/v2 v2.4.2
+	go.yaml.in/yaml/v2 v2.4.4
 )
 
 require (
