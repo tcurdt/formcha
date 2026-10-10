@@ -1,9 +1,10 @@
 module vafer.org/formcha
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/altcha-org/altcha-lib-go v1.0.0
+	github.com/altcha-org/altcha-lib-go/v2 v2.4.0
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/getbrevo/brevo-go v1.1.3
 	github.com/gregdel/pushover v1.4.0
@@ -21,6 +22,6 @@ require (
 	github.com/prometheus/common v0.66.1 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect
 )
