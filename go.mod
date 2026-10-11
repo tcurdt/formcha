@@ -1,14 +1,14 @@
 module vafer.org/formcha
 
-go 1.25
+go 1.26.0
 
 require (
 	github.com/altcha-org/altcha-lib-go v1.0.0
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/getbrevo/brevo-go v1.1.3
 	github.com/gregdel/pushover v1.4.0
-	github.com/prometheus/client_golang v1.23.2
-	go.yaml.in/yaml/v2 v2.4.2
+	github.com/prometheus/client_golang v1.25.0
+	go.yaml.in/yaml/v2 v2.4.4
 )
 
 require (
@@ -17,10 +17,10 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.66.1 // indirect
-	github.com/prometheus/procfs v0.16.1 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	google.golang.org/protobuf v1.36.8 // indirect
+	github.com/prometheus/client_model v0.6.3 // indirect
+	github.com/prometheus/common v0.72.0 // indirect
+	github.com/prometheus/procfs v0.22.0 // indirect
+	golang.org/x/oauth2 v0.37.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
